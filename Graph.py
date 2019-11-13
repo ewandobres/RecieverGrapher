@@ -8,7 +8,7 @@ import time
 
 
 start_time = time.time()
-delay = .5
+delay = .2
 
 # Create object serial port
 portName = "COM12"  # replace this port name by yours!
@@ -30,7 +30,10 @@ windowWidth = 10  # width of the window displaying the curve
 
 # Xm = linspace(0, 0, windowWidth)  # create array that will contain the relevant time series
 ptr = -windowWidth  # set first x position
-dataArray = np.linspace(0, 0, windowWidth)
+dataArray = []
+for x in range(sensornum):
+    dataArray.append(np.linspace(0, 0, windowWidth))
+
 timesense = []
 loopnum = 0
 sensor = []
@@ -52,7 +55,7 @@ pltcount = 0
 def update():
 
     lineread = []
-
+    value = []
     #arduinoData = next(pool)
 
     #lineread = (arduinoData.split(','))
@@ -74,17 +77,13 @@ def update():
     #
     for x in range(sensornum):
         global curve, ptr, dataArray
-        value = []
-        plt = []
 
-        for y in range(sensornum):
-            newarray = []
-            value.append(float(lineread[y]))  # read line (single value) from the serial port
-            dataArray = np.append(dataArray, value[y])
-            dataArray = np.delete(dataArray, 0)
-            plt = (time.time() - start_time) / delay - windowWidth  # update x position for displaying the curve
-            curve[x].setData(dataArray)  # set the curve with this data
-            curve[x].setPos(plt, 0)  # set x position in the graph to 0
+        plt = []
+        dataArray[x] = (np.append(dataArray[x], float(lineread[x])))
+        dataArray[x] = np.delete(dataArray[x], 0)
+        plt = (time.time() - start_time) / delay - windowWidth  # update x position for displaying the curve
+        curve[x].setData(dataArray[x])  # set the curve with this data
+        curve[x].setPos(plt, 0)  # set x position in the graph to 0
 
 
 
