@@ -5,17 +5,17 @@ import numpy as np
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 import time
-import threading
+
 
 start_time = time.time()
-delay = .1
+delay = .5
 
 # Create object serial port
 portName = "COM12"  # replace this port name by yours!
 baudrate = 9600
 # ser = serial.Serial(portName, baudrate)
 
-sensornum = 1
+sensornum = 2
 curve = []
 ### START QtApp #####
 app = QtGui.QApplication([])  # you MUST do this once (initialize things)
@@ -36,35 +36,58 @@ loopnum = 0
 sensor = []
 lines = []
 
-# f = open("testdata.txt")
-# for x in f:
+#f = open("testdata.txt")
+
+#for x in f:
 #    lines.append(x)
 
-# pool = cycle(lines)
+
+#f.close()
+#pool = cycle(lines)
 
 pltcount = 0
 
 
 # Realtime data plot. Each time this function is called, the data display is updated
 def update():
-    global pltcount
-    pltcount += 1
-    lineread = []
-    # arduinoData = next(pool)
-    # lineread = (arduinoData.split(','))
-    for x in range(sensornum):
-        lineread.append(uniform(0, 100))
-    # timesense = lineread(len(lineread)-1)
 
+    lineread = []
+
+    #arduinoData = next(pool)
+
+    #lineread = (arduinoData.split(','))
+
+
+
+    for x in range(sensornum):
+       lineread.append(uniform(0, 100))
+
+    outfile = open("output.csv", "a")
+    for x in range(sensornum):
+        if x == sensornum -1:
+            outfile.write(str(round(lineread[x] , 2)))
+        else:
+            outfile.write(str(round(lineread[x] , 2)) + ",")
+
+    outfile.write("\n")
+    outfile.close()
+    #
     for x in range(sensornum):
         global curve, ptr, dataArray
+        value = []
+        plt = []
 
-        curve[x].setData(dataArray)  # set the curve with this data
-        value = lineread[x]  # read line (single value) from the serial port
-        dataArray = np.append(dataArray, value)
-        dataArray = np.delete(dataArray, 0)
-        plt = (time.time() - start_time) / delay - windowWidth  # update x position for displaying the curve
-        curve[x].setPos(plt, 0)  # set x position in the graph to 0
+        for y in range(sensornum):
+            newarray = []
+            value.append(float(lineread[y]))  # read line (single value) from the serial port
+            dataArray = np.append(dataArray, value[y])
+            dataArray = np.delete(dataArray, 0)
+            plt = (time.time() - start_time) / delay - windowWidth  # update x position for displaying the curve
+            curve[x].setData(dataArray)  # set the curve with this data
+            curve[x].setPos(plt, 0)  # set x position in the graph to 0
+
+
+
 
         QtGui.QApplication.processEvents()  # you MUST process the plot now
 
