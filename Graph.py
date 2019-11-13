@@ -31,11 +31,11 @@ for x in range(sensornum):
     curve.append(p.plot())  # create an empty "plot" (a curve to plot)
 
 
-windowWidth = 10  # width of the window displaying the curve
+windowWidth = 100  # width of the window displaying the curve
 
-Xm = linspace(0, 0, windowWidth)  # create array that will contain the relevant time series
+#Xm = linspace(0, 0, windowWidth)  # create array that will contain the relevant time series
 ptr = -windowWidth  # set first x position
-
+dataArray = linspace(0, 0, windowWidth)
 timesense = []
 count = -1
 nums = []
@@ -66,13 +66,16 @@ def update():
 
     for x in range(sensornum):
 
-        global curve, ptr, Xm
+        global curve, ptr, dataArray
 
-        Xm[:-1] = Xm[1:]  # shift data in the temporal mean 1 sample left
+        #Xm[:-1] = Xm[1:]  # shift data in the temporal mean 1 sample left
         value = lineread[x]  # read line (single value) from the serial port
-        Xm[-1] = float(value)  # vector containing the instantaneous values
-        plt = (time.time() - start_time)
-        curve[x].setData(Xm)  # set the curve with this data
+        dataArray.append()
+        del dataArray[0]
+        #Xm[-1] = float(value)  # vector containing the instantaneous values
+
+        plt = (time.time() - start_time)/delay -windowWidth   # update x position for displaying the curve
+        curve[x].setData(dataArray)  # set the curve with this data
 
         curve[x].setPos(plt, 0)  # set x position in the graph to 0
 
