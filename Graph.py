@@ -5,7 +5,7 @@ import numpy as np
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 import time
-
+import math
 
 start_time = time.time()
 delay = .2
@@ -14,8 +14,9 @@ delay = .2
 portName = "COM12"  # replace this port name by yours!
 baudrate = 9600
 # ser = serial.Serial(portName, baudrate)
-
-sensornum = 2
+# assume that the first 3 inputs are the accelerometer values
+sensornum = 3 #num of graphs
+inputs = 5 #num of raw inputs
 curve = []
 ### START QtApp #####
 app = QtGui.QApplication([])  # you MUST do this once (initialize things)
@@ -26,7 +27,7 @@ for x in range(sensornum):
     p = win.addPlot(title="Realtime plot")  # creates empty space for the plot in the window
     curve.append(p.plot())  # create an empty "plot" (a curve to plot)
 
-windowWidth = 10  # width of the window displaying the curve
+windowWidth = 100  # width of the window displaying the curve
 
 # Xm = linspace(0, 0, windowWidth)  # create array that will contain the relevant time series
 ptr = -windowWidth  # set first x position
@@ -39,14 +40,14 @@ loopnum = 0
 sensor = []
 lines = []
 
-#f = open("testdata.txt")
+f = open("testdata.txt")
 
-#for x in f:
-#    lines.append(x)
+for x in f:
+    lines.append(x)
 
 
-#f.close()
-#pool = cycle(lines)
+f.close()
+pool = cycle(lines)
 
 pltcount = 0
 
@@ -56,21 +57,30 @@ def update():
 
     lineread = []
     value = []
-    #arduinoData = next(pool)
+    arduinoData = next(pool)
+    lineread = (arduinoData.split(','))
+    for x in lineread:
+        x = float(x)
 
-    #lineread = (arduinoData.split(','))
 
 
 
-    for x in range(sensornum):
-       lineread.append(uniform(0, 100))
+
+    #for x in range(inputs):
+       #lineread.append(uniform(0, 100))
+
+    acc = calcAcceleration(lineread[0], lineread[1], lineread[2])
+    newLineread = []
+    newLineread.append(acc)
+    newLineread.append(lineread[3:])
 
     outfile = open("output.csv", "a")
     for x in range(sensornum):
         if x == sensornum -1:
-            outfile.write(str(round(lineread[x] , 2)))
+            outfile.write(str(lineread[x]))
         else:
-            outfile.write(str(round(lineread[x] , 2)) + ",")
+            outfile.write(str(lineread[x])+ ",")
+
 
     outfile.write("\n")
     outfile.close()
@@ -101,6 +111,14 @@ def every(delay, task):
         task()
         next_time += (time.time() - next_time) // delay * delay + delay
 
+
+
+def calcAcceleration(x, y, z):
+    x = int(x)
+    y = int(y)
+    z = int(z)
+    result = math.sqrt(x**2+y**2+z**2)
+    return result
 
 every(delay, update)
 ### END QtApp ####
