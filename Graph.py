@@ -13,7 +13,7 @@ delay = .2
 # Create object serial port
 portName = "COM12"  # replace this port name by yours!
 baudrate = 9600
-# ser = serial.Serial(portName, baudrate)
+ ser = serial.Serial(portName, baudrate)
 # assume that the first 3 inputs are the accelerometer values
 sensornum = 3 #num of graphs
 inputs = 5 #num of raw inputs
@@ -40,14 +40,14 @@ loopnum = 0
 sensor = []
 lines = []
 
-f = open("testdata.txt")
+#f = open("testdata.txt")
 
-for x in f:
-    lines.append(x)
+#for x in f:
+    #lines.append(x)
 
 
-f.close()
-pool = cycle(lines)
+#f.close()
+#pool = cycle(lines)
 
 pltcount = 0
 
@@ -57,7 +57,7 @@ def update():
 
     lineread = []
     value = []
-    arduinoData = next(pool)
+    arduinoData = ser.readline()
     lineread = (arduinoData.split(','))
     for x in lineread:
         x = float(x)
