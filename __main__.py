@@ -1,5 +1,4 @@
 # Import libraries
-from itertools import cycle
 from random import randrange, uniform
 import numpy as np
 from pyqtgraph.Qt import QtGui, QtCore
