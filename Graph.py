@@ -6,6 +6,7 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 import time
 import math
+import serial
 
 start_time = time.time()
 delay = .2
@@ -13,7 +14,11 @@ delay = .2
 # Create object serial port
 portName = "COM12"  # replace this port name by yours!
 baudrate = 9600
- ser = serial.Serial(portName, baudrate)
+try:
+    ser = serial.Serial(portName, baudrate)
+except:
+    print("Couldn't connect to serial port, have you entered it correctly? Is the arduino plugged in?")
+    exit()
 # assume that the first 3 inputs are the accelerometer values
 sensornum = 3 #num of graphs
 inputs = 5 #num of raw inputs
