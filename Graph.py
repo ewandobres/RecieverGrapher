@@ -10,15 +10,43 @@ from itertools import cycle
 
 start_time = time.time()
 delay = .2
+lineread = []
 
+def getChoice():
+    choice = ""
+    while choice == "":
+        print("Select input mode:")
+        inp = input("(1) arduino, (2) textfile, (3) random values \n")
+        if inp =="1" or inp=="2" or inp=="3":
+            choice = inp
+        else:
+            print("invalid choice, try again")
+    return choice
+def readTxt(file):
+    f = open(file)
+
+    for x in f:
+        lines.append(x)
+
+
+    f.close()
+    pool = cycle(lines)
+    return pool
+
+    for x in range(inputs):
+       return lr.append(uniform(0, 100))
 # Create object serial port
 portName = "COM12"  # replace this port name by yours!
 baudrate = 9600
-try:
-    ser = serial.Serial(portName, baudrate)
-except:
-    print("Couldn't connect to serial port, have you entered it correctly? Is the arduino plugged in?")
-    exit()
+choice = getChoice()
+print("choice: " + choice)
+
+if choice == "1":
+    try:
+        ser = serial.Serial(portName, baudrate)
+    except:
+        print("Couldn't connect to serial port, have you entered it correctly? Is the arduino plugged in?")
+        exit()
 # assume that the first 3 inputs are the accelerometer values
 sensornum = 3 #num of graphs
 inputs =  5 #num of raw inputs
@@ -42,15 +70,8 @@ for x in range(sensornum):
 
 sensor = []
 lines = []
-
-#f = open("testdata.txt")
-
-#for x in f:
-    #ines.append(x)
-
-
-#f.close()
-#pool = cycle(lines)
+if choice == "2":
+    pool = readTxt("arduino.txt")
 
 pltcount = 0
 
@@ -60,25 +81,29 @@ def update():
 
     lineread = []
     value = []
-    arduinoData = ser.readline()
-    #arduinoData = next(pool)
-    lineread = (arduinoData.split(','))
+    if choice == "1":
+        arduinoData = ser.readline()
+        lineread = (arduinoData.split(','))
+    elif choice == "2":
+        arduinoData = next(pool)
+        lineread = (arduinoData.split(','))
+    elif choice =="3":
+        for x in range(inputs):
+            lineread.append(uniform(0, 100))
+    
+    
+
+    
+
+
+    
     for x in lineread:
         x = float(x)
-
-
-
-
-
-    #for x in range(inputs):
-       #lineread.append(uniform(0, 100))
-
     acc = round(calcAcceleration(lineread[0], lineread[1], lineread[2]), 2)
     newLineread = []
     newLineread.append(acc)
     newLineread.extend(lineread[3:])
     lineread = newLineread
-    print(len(lineread))
 
     outfile = open("output.csv", "a")
     for x in range(sensornum):
@@ -120,11 +145,18 @@ def every(delay, task):
 
 
 def calcAcceleration(x, y, z):
-    x = int(x)
-    y = int(y)
-    z = int(z)
+    x = float(x)
+    y = float(y)
+    z = float(z)
     result = math.sqrt(x**2+y**2+z**2)
+    result -= 9.81
     return result
+
+
+
+
+
+
 
 every(delay, update)
 ### END QtApp ####
