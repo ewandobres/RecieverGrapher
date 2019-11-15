@@ -6,6 +6,7 @@ import pyqtgraph as pg
 import time
 import math
 import serial
+from itertools import cycle
 
 start_time = time.time()
 delay = .2
@@ -20,7 +21,7 @@ except:
     exit()
 # assume that the first 3 inputs are the accelerometer values
 sensornum = 3 #num of graphs
-inputs = 5 #num of raw inputs
+inputs =  5 #num of raw inputs
 curve = []
 ### START QtApp #####
 app = QtGui.QApplication([])  # you MUST do this once (initialize things)
@@ -39,15 +40,13 @@ dataArray = []
 for x in range(sensornum):
     dataArray.append(np.linspace(0, 0, windowWidth))
 
-timesense = []
-loopnum = 0
 sensor = []
 lines = []
 
 #f = open("testdata.txt")
 
 #for x in f:
-    #lines.append(x)
+    #ines.append(x)
 
 
 #f.close()
@@ -62,6 +61,7 @@ def update():
     lineread = []
     value = []
     arduinoData = ser.readline()
+    #arduinoData = next(pool)
     lineread = (arduinoData.split(','))
     for x in lineread:
         x = float(x)
@@ -73,10 +73,12 @@ def update():
     #for x in range(inputs):
        #lineread.append(uniform(0, 100))
 
-    acc = calcAcceleration(lineread[0], lineread[1], lineread[2])
+    acc = round(calcAcceleration(lineread[0], lineread[1], lineread[2]), 2)
     newLineread = []
     newLineread.append(acc)
-    newLineread.append(lineread[3:])
+    newLineread.extend(lineread[3:])
+    lineread = newLineread
+    print(len(lineread))
 
     outfile = open("output.csv", "a")
     for x in range(sensornum):
@@ -88,7 +90,7 @@ def update():
 
     outfile.write("\n")
     outfile.close()
-    #
+    
     for x in range(sensornum):
         global curve, ptr, dataArray
 
