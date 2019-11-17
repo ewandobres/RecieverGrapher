@@ -9,7 +9,7 @@ import serial
 from itertools import cycle
 
 start_time = time.time()
-delay = .2
+delay = .1
 lineread = []
 
 def getChoice():
@@ -36,7 +36,7 @@ def readTxt(file):
     for x in range(inputs):
        return lr.append(uniform(0, 100))
 # Create object serial port
-portName = "COM12"  # replace this port name by yours!
+portName = "/dev/cu.usbmodem14201"  # replace this port name by yours!
 baudrate = 9600
 choice = getChoice()
 print("choice: " + choice)
@@ -44,6 +44,7 @@ print("choice: " + choice)
 if choice == "1":
     try:
         ser = serial.Serial(portName, baudrate)
+        print("Serial connected")
     except:
         print("Couldn't connect to serial port, have you entered it correctly? Is the arduino plugged in?")
         exit()
@@ -81,8 +82,10 @@ def update():
 
     lineread = []
     value = []
+    arduinoData = ""
     if choice == "1":
-        arduinoData = ser.readline()
+        print("reading data")
+        arduinoData = (ser.readline().decode('ascii'))
         lineread = (arduinoData.split(','))
     elif choice == "2":
         arduinoData = next(pool)
@@ -97,13 +100,13 @@ def update():
 
 
     
-    for x in lineread:
-        x = float(x)
+
     acc = round(calcAcceleration(lineread[0], lineread[1], lineread[2]), 2)
     newLineread = []
     newLineread.append(acc)
     newLineread.extend(lineread[3:])
     lineread = newLineread
+    print(lineread)
 
     outfile = open("output.csv", "a")
     for x in range(sensornum):
