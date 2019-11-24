@@ -15,47 +15,8 @@ lineread = []
 config = configparser.ConfigParser()
 config.read('config.ini')
 titles = config.get('SETTINGS', 'graph titles').split(',')
-print(titles)
-
-def getChoice():
-    choice = ""
-    while choice == "":
-        print("Select input mode:")
-        inp = input("(1) arduino, (2) textfile, (3) random values \n")
-        if inp =="1" or inp=="2" or inp=="3":
-            choice = inp
-        else:
-            print("invalid choice, try again")
-    return choice
-def readTxt(file):
-    f = open(file)
-
-    for x in f:
-        lines.append(x)
-
-
-    f.close()
-    pool = cycle(lines)
-    return pool
-
-    for x in range(inputs):
-       return lr.append(uniform(0, 100))
-# Create object serial port
-portName = "/dev/cu.usbmodem14201"  # replace this port name by yours!
-baudrate = 9600
 choice = config.get('SETTINGS', 'Input Mode')
-print("Using input mode: " + choice)
-
-if choice == "1":
-    try:
-        ser = serial.Serial(portName, baudrate)
-        print("Serial connected")
-    except:
-        print("Couldn't connect to serial port, have you entered it correctly? Is the arduino plugged in?")
-        exit()
-# assume that the first 3 inputs are the accelerometer values
-inputs =  int(config.get('SETTINGS', 'Number of raw inputs'))
-sensornum = inputs-2
+sensornum =  int(config.get('SETTINGS', 'Number of graphs'))
 curve = []
 ### START QtApp #####
 app = QtGui.QApplication([])  # you MUST do this once (initialize things)
@@ -96,22 +57,9 @@ def update():
         arduinoData = next(pool)
         lineread = (arduinoData.split(','))
     elif choice =="3":
-        for x in range(inputs):
+        for x in range(sensornum):
             lineread.append(uniform(0, 100))
     
-    
-
-    
-
-
-    
-
-    acc = round(calcAcceleration(lineread[0], lineread[1], lineread[2]), 2)
-    newLineread = []
-    newLineread.append(acc)
-    newLineread.extend(lineread[3:])
-    lineread = newLineread
-    print(lineread)
 
     outfile = open("output.csv", "a")
     for x in range(sensornum):
@@ -149,22 +97,6 @@ def every(delay, task):
         time.sleep(max(0, next_time - time.time()))
         task()
         next_time += (time.time() - next_time) // delay * delay + delay
-
-
-
-def calcAcceleration(x, y, z):
-    x = float(x)
-    y = float(y)
-    z = float(z)
-    result = math.sqrt(x**2+y**2+z**2)
-    result -= 9.81
-    return result
-
-
-
-
-
-
 
 every(delay, update)
 ### END QtApp ####
