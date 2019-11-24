@@ -7,49 +7,18 @@ import time
 import math
 import serial
 from itertools import cycle
+import configparser
 
 start_time = time.time()
-delay = .2
+delay = .1
 lineread = []
-
-def getChoice():
-    choice = ""
-    while choice == "":
-        print("Select input mode:")
-        inp = input("(1) arduino, (2) textfile, (3) random values \n")
-        if inp =="1" or inp=="2" or inp=="3":
-            choice = inp
-        else:
-            print("invalid choice, try again")
-    return choice
-def readTxt(file):
-    f = open(file)
-
-    for x in f:
-        lines.append(x)
-
-
-    f.close()
-    pool = cycle(lines)
-    return pool
-
-    for x in range(inputs):
-       return lr.append(uniform(0, 100))
-# Create object serial port
-portName = "COM12"  # replace this port name by yours!
+config = configparser.ConfigParser()
+config.read('config.ini')
+titles = config.get('SETTINGS', 'graph titles').split(',')
+choice = config.get('SETTINGS', 'Input Mode')
+sensornum =  int(config.get('SETTINGS', 'Number of graphs'))
+portName = 'COM11'
 baudrate = 9600
-choice = getChoice()
-print("choice: " + choice)
-
-if choice == "1":
-    try:
-        ser = serial.Serial(portName, baudrate)
-    except:
-        print("Couldn't connect to serial port, have you entered it correctly? Is the arduino plugged in?")
-        exit()
-# assume that the first 3 inputs are the accelerometer values
-sensornum = 3 #num of graphs
-inputs =  5 #num of raw inputs
 curve = []
 ### START QtApp #####
 app = QtGui.QApplication([])  # you MUST do this once (initialize things)
@@ -57,7 +26,7 @@ app = QtGui.QApplication([])  # you MUST do this once (initialize things)
 win = pg.GraphicsWindow(title="Signal from serial port")  # creates a window
 
 for x in range(sensornum):
-    p = win.addPlot(title="Realtime plot")  # creates empty space for the plot in the window
+    p = win.addPlot(title=titles[x])  # creates empty space for the plot in the window
     curve.append(p.plot())  # create an empty "plot" (a curve to plot)
 
 windowWidth = 100  # width of the window displaying the curve
@@ -70,7 +39,13 @@ for x in range(sensornum):
 
 sensor = []
 lines = []
-if choice == "2":
+if choice == "1":
+    try:
+        ser = serial.Serial(portName, baudrate)
+    except:
+        print("Couldn't connect to serial port, have you entered it correctly? Is the arduino plugged in?")
+        exit()
+elif choice == "2":
     pool = readTxt("arduino.txt")
 
 pltcount = 0
@@ -81,29 +56,18 @@ def update():
 
     lineread = []
     value = []
+    arduinoData = ""
     if choice == "1":
-        arduinoData = ser.readline()
+        print("reading data")
+        arduinoData = (ser.readline().decode('ascii'))
         lineread = (arduinoData.split(','))
     elif choice == "2":
         arduinoData = next(pool)
         lineread = (arduinoData.split(','))
     elif choice =="3":
-        for x in range(inputs):
+        for x in range(sensornum):
             lineread.append(uniform(0, 100))
     
-    
-
-    
-
-
-    
-    for x in lineread:
-        x = float(x)
-    acc = round(calcAcceleration(lineread[0], lineread[1], lineread[2]), 2)
-    newLineread = []
-    newLineread.append(acc)
-    newLineread.extend(lineread[3:])
-    lineread = newLineread
 
     outfile = open("output.csv", "a")
     for x in range(sensornum):
@@ -141,22 +105,6 @@ def every(delay, task):
         time.sleep(max(0, next_time - time.time()))
         task()
         next_time += (time.time() - next_time) // delay * delay + delay
-
-
-
-def calcAcceleration(x, y, z):
-    x = float(x)
-    y = float(y)
-    z = float(z)
-    result = math.sqrt(x**2+y**2+z**2)
-    result -= 9.81
-    return result
-
-
-
-
-
-
 
 every(delay, update)
 ### END QtApp ####
