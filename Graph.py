@@ -7,10 +7,15 @@ import time
 import math
 import serial
 from itertools import cycle
+import configparser
 
 start_time = time.time()
 delay = .1
 lineread = []
+config = configparser.ConfigParser()
+config.read('config.ini')
+titles = config.get('SETTINGS', 'graph titles').split(',')
+print(titles)
 
 def getChoice():
     choice = ""
@@ -38,8 +43,8 @@ def readTxt(file):
 # Create object serial port
 portName = "/dev/cu.usbmodem14201"  # replace this port name by yours!
 baudrate = 9600
-choice = getChoice()
-print("choice: " + choice)
+choice = config.get('SETTINGS', 'Input Mode')
+print("Using input mode: " + choice)
 
 if choice == "1":
     try:
@@ -49,8 +54,8 @@ if choice == "1":
         print("Couldn't connect to serial port, have you entered it correctly? Is the arduino plugged in?")
         exit()
 # assume that the first 3 inputs are the accelerometer values
-sensornum = 3 #num of graphs
-inputs =  5 #num of raw inputs
+inputs =  int(config.get('SETTINGS', 'Number of raw inputs'))
+sensornum = inputs-2
 curve = []
 ### START QtApp #####
 app = QtGui.QApplication([])  # you MUST do this once (initialize things)
@@ -58,7 +63,7 @@ app = QtGui.QApplication([])  # you MUST do this once (initialize things)
 win = pg.GraphicsWindow(title="Signal from serial port")  # creates a window
 
 for x in range(sensornum):
-    p = win.addPlot(title="Realtime plot")  # creates empty space for the plot in the window
+    p = win.addPlot(title=titles[x])  # creates empty space for the plot in the window
     curve.append(p.plot())  # create an empty "plot" (a curve to plot)
 
 windowWidth = 100  # width of the window displaying the curve
