@@ -17,6 +17,8 @@ config.read('config.ini')
 titles = config.get('SETTINGS', 'graph titles').split(',')
 choice = config.get('SETTINGS', 'Input Mode')
 sensornum =  int(config.get('SETTINGS', 'Number of graphs'))
+portName = 'COM11'
+baudrate = 9600
 curve = []
 ### START QtApp #####
 app = QtGui.QApplication([])  # you MUST do this once (initialize things)
@@ -37,7 +39,13 @@ for x in range(sensornum):
 
 sensor = []
 lines = []
-if choice == "2":
+if choice == "1":
+    try:
+        ser = serial.Serial(portName, baudrate)
+    except:
+        print("Couldn't connect to serial port, have you entered it correctly? Is the arduino plugged in?")
+        exit()
+elif choice == "2":
     pool = readTxt("arduino.txt")
 
 pltcount = 0
