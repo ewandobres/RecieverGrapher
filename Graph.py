@@ -16,7 +16,7 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 titles = config.get('SETTINGS', 'graph titles').split(',')
 choice = config.get('SETTINGS', 'Input Mode')
-sensornum =  int(config.get('SETTINGS', 'Number of graphs'))
+sensornum = int(config.get('SETTINGS', 'Number of graphs'))
 portName = 'COM11'
 baudrate = 9600
 curve = []
@@ -53,10 +53,7 @@ pltcount = 0
 
 # Realtime data plot. Each time this function is called, the data display is updated
 def update():
-
     lineread = []
-    value = []
-    arduinoData = ""
     if choice == "1":
         print("reading data")
         arduinoData = (ser.readline().decode('ascii'))
@@ -64,34 +61,28 @@ def update():
     elif choice == "2":
         arduinoData = next(pool)
         lineread = (arduinoData.split(','))
-    elif choice =="3":
+    elif choice == "3":
         for x in range(sensornum):
             lineread.append(uniform(0, 100))
-    
 
     outfile = open("output.csv", "a")
     for x in range(sensornum):
-        if x == sensornum -1:
+        if x == sensornum - 1:
             outfile.write(str(lineread[x]))
         else:
-            outfile.write(str(lineread[x])+ ",")
-
+            outfile.write(str(lineread[x]) + ",")
 
     outfile.write("\n")
     outfile.close()
-    
+
     for x in range(sensornum):
         global curve, ptr, dataArray
 
-        plt = []
         dataArray[x] = (np.append(dataArray[x], float(lineread[x])))
         dataArray[x] = np.delete(dataArray[x], 0)
         plt = (time.time() - start_time) / delay - windowWidth  # update x position for displaying the curve
         curve[x].setData(dataArray[x])  # set the curve with this data
         curve[x].setPos(plt, 0)  # set x position in the graph to 0
-
-
-
 
         QtGui.QApplication.processEvents()  # you MUST process the plot now
 
@@ -105,6 +96,7 @@ def every(delay, task):
         time.sleep(max(0, next_time - time.time()))
         task()
         next_time += (time.time() - next_time) // delay * delay + delay
+
 
 every(delay, update)
 ### END QtApp ####
