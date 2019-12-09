@@ -17,9 +17,10 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 titles = config.get('SETTINGS', 'graph titles').split(',')
 choice = config.get('SETTINGS', 'Input Mode')
-sensornum =  int(config.get('SETTINGS', 'Number of graphs'))
+sensornum = int(config.get('SETTINGS', 'Number of graphs'))
 portName = 'COM11'
 baudrate = 9600
+runOnce = 0
 curve = []
 ### START QtApp #####
 app = QtGui.QApplication([])  # you MUST do this once (initialize things)
@@ -38,8 +39,9 @@ if sensornum != len(titles):
 win = pg.GraphicsWindow(title="Signal from serial port")  # creates a window
 
 for x in range(sensornum):
-    p = win.addPlot(title=titles[x])  # creates empty space for the plot in the window
-    curve.append(p.plot())  # create an empty "plot" (a curve to plot)
+    createPlotSpace = win.addPlot(title=titles[x])  # creates empty space for the plot in the window
+    curve.append(createPlotSpace.plot())  # create an empty "plot" (a curve to plot)
+    curve[x].scale(delay, 1)
 
 windowWidth = 100  # width of the window displaying the curve
 
@@ -68,10 +70,7 @@ pltcount = 0
 
 # Realtime data plot. Each time this function is called, the data display is updated
 def update():
-
     lineread = []
-    value = []
-    arduinoData = ""
     if choice == "1":
         print("reading data")
         arduinoData = (ser.readline().decode('ascii'))
@@ -80,38 +79,30 @@ def update():
         tempRead = next(pool)
         arduinoData = removeIllegalChars(tempRead)
         lineread = (arduinoData.split(','))
-    elif choice =="3":
+    elif choice == "3":
         for x in range(sensornum):
             lineread.append(uniform(0, 100))
-    
-    if len(lineread) == sensornum:
-        outfile = open("output.csv", "a")
-        print(lineread)
-    
-        for x in range(sensornum):
-            if x == sensornum -1:
-                outfile.write(str(lineread[x]))
-            else:
-                outfile.write(str(lineread[x])+ ",")
 
+	if len(lineread) == sensornum:
+    	outfile = open("output.csv", "a")
+    	for x in range(sensornum):
+        	if x == sensornum - 1:
+            	outfile.write(str(lineread[x]))
+        	else:
+            	outfile.write(str(lineread[x]) + ",")
 
-        outfile.write("\n")
-        outfile.close()
-    
-        for x in range(sensornum):
-            global curve, ptr, dataArray
+    	outfile.write("\n")
+    	outfile.close()
 
-            plt = []
-            dataArray[x] = (np.append(dataArray[x], float(lineread[x])))
-            dataArray[x] = np.delete(dataArray[x], 0)
-            plt = (time.time() - start_time) / delay - windowWidth  # update x position for displaying the curve
-            curve[x].setData(dataArray[x])  # set the curve with this data
-            curve[x].setPos(plt, 0)  # set x position in the graph to 0
+    	for x in range(sensornum):
+        	global curve, ptr, dataArray, runOnce
 
+        	dataArray[x] = (np.append(dataArray[x], float(lineread[x])))
+        	dataArray[x] = np.delete(dataArray[x], 0)
+        	curve[x].setData(dataArray[x])  # set the curve with this data
+        	curve[x].setPos(currenttime() - windowWidth*delay, 0)
+        	QtGui.QApplication.processEvents()  # you MUST process the plot now
 
-
-
-            QtGui.QApplication.processEvents()  # you MUST process the plot now
 
 
 ### MAIN PROGRAM #####
@@ -123,6 +114,11 @@ def every(delay, task):
         time.sleep(max(0, next_time - time.time()))
         task()
         next_time += (time.time() - next_time) // delay * delay + delay
+
+
+def currenttime():
+    return round(time.time() - start_time, 2)
+
 
 every(delay, update)
 ### END QtApp ####
