@@ -11,15 +11,19 @@ import configparser
 import re
 
 start_time = time.time()
-delay = .1
+
 lineread = []
 config = configparser.ConfigParser()
 config.read('config.ini')
-titles = config.get('SETTINGS', 'graph titles').split(',')
-choice = config.get('SETTINGS', 'Input Mode')
-sensornum = int(config.get('SETTINGS', 'Number of graphs'))
-portName = 'COM11'
-baudrate = 9600
+titles = config.get('SETTINGS', 'Graph_Titles').split(',')
+choice = config.get('SETTINGS', 'Input_Mode')
+sensornum = int(config.get('SETTINGS', 'Number_Of_Graphs'))
+delay = float(config.get('ARDUINO', 'Input_Delay'))
+windowWidth = int(config.get('SETTINGS', 'Data_Width'))
+portName = config.get('ARDUINO', 'Port_Name')
+baudrate = int(config.get('ARDUINO', 'Baudrate'))
+fileName = config.get('SETTINGS', 'File_Name')
+testData = config.get('SETTINGS', 'Test_File')
 runOnce = 0
 curve = []
 ### START QtApp #####
@@ -43,9 +47,6 @@ for x in range(sensornum):
     curve.append(createPlotSpace.plot())  # create an empty "plot" (a curve to plot)
     curve[x].scale(delay, 1)
 
-windowWidth = 100  # width of the window displaying the curve
-
-# Xm = linspace(0, 0, windowWidth)  # create array that will contain the relevant time series
 ptr = -windowWidth  # set first x position
 dataArray = []
 for x in range(sensornum):
@@ -60,7 +61,7 @@ if choice == "1":
         print("Couldn't connect to serial port, have you entered it correctly? Is the arduino plugged in?")
         exit()
 elif choice == "2":
-    f = open('testdata.txt', 'r')
+    f = open(testData, 'r')
     textdata = f.readlines()
     f.close
     pool = cycle(textdata)
@@ -84,7 +85,7 @@ def update():
             lineread.append(uniform(0, 100))
 
     if len(lineread) == sensornum:
-        outfile = open("output.csv", "a")
+        outfile = open(fileName, "a")
         for x in range(sensornum):
             if x == sensornum - 1:
                 outfile.write(str(lineread[x]))
