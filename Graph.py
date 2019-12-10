@@ -25,16 +25,16 @@ curve = []
 ### START QtApp #####
 app = QtGui.QApplication([])  # you MUST do this once (initialize things)
 
+
 def removeIllegalChars(inp):
     result = re.sub("[^0-9,.]", "", inp)
     return result
 
-#check config is valid
+
+# check config is valid
 if sensornum != len(titles):
     print("You have given the incorrect number of titles for the number of graphs. Check config.ini. ")
     exit()
-
-
 
 win = pg.GraphicsWindow(title="Signal from serial port")  # creates a window
 
@@ -83,26 +83,25 @@ def update():
         for x in range(sensornum):
             lineread.append(uniform(0, 100))
 
-	if len(lineread) == sensornum:
-    	outfile = open("output.csv", "a")
-    	for x in range(sensornum):
-        	if x == sensornum - 1:
-            	outfile.write(str(lineread[x]))
-        	else:
-            	outfile.write(str(lineread[x]) + ",")
+    if len(lineread) == sensornum:
+        outfile = open("output.csv", "a")
+        for x in range(sensornum):
+            if x == sensornum - 1:
+                outfile.write(str(lineread[x]))
+            else:
+                outfile.write(str(lineread[x]) + ",")
 
-    	outfile.write("\n")
-    	outfile.close()
+        outfile.write("\n")
+        outfile.close()
 
-    	for x in range(sensornum):
-        	global curve, ptr, dataArray, runOnce
+        for x in range(sensornum):
+            global curve, ptr, dataArray, runOnce
 
-        	dataArray[x] = (np.append(dataArray[x], float(lineread[x])))
-        	dataArray[x] = np.delete(dataArray[x], 0)
-        	curve[x].setData(dataArray[x])  # set the curve with this data
-        	curve[x].setPos(currenttime() - windowWidth*delay, 0)
-        	QtGui.QApplication.processEvents()  # you MUST process the plot now
-
+            dataArray[x] = (np.append(dataArray[x], float(lineread[x])))
+            dataArray[x] = np.delete(dataArray[x], 0)
+            curve[x].setData(dataArray[x])  # set the curve with this data
+            curve[x].setPos(currenttime() - windowWidth * delay, 0)
+            QtGui.QApplication.processEvents()  # you MUST process the plot now
 
 
 ### MAIN PROGRAM #####
