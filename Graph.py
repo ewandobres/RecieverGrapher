@@ -101,9 +101,10 @@ def update():
             dataArray[x] = (np.append(dataArray[x], float(lineread[x])))
             dataArray[x] = np.delete(dataArray[x], 0)
             curve[x].setData(dataArray[x])  # set the curve with this data
-            curve[x].setPos(currenttime() - windowWidth * delay, 0)
+            curve[x].setPos(currentTime() - windowWidth * delay, 0)
             QtGui.QApplication.processEvents()  # you MUST process the plot now
-
+    else:
+        print("Error: Either an empty input has been detected or incorrect number of inputs specified")
 
 ### MAIN PROGRAM #####
 # this is a brutal infinite loop calling your realtime data plot
@@ -116,7 +117,7 @@ def every(delay, task):
         next_time += (time.time() - next_time) // delay * delay + delay
 
 
-def currenttime():
+def currentTime():
     return round(time.time() - start_time, 2)
 
 
