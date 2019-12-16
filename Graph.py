@@ -1,6 +1,7 @@
 # Import libraries
 from random import randrange, uniform
 import numpy as np
+from PyQt5.QtWidgets import QMainWindow
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 import time
@@ -11,7 +12,7 @@ import configparser
 import re
 
 start_time = time.time()
-
+curves = []
 lineread = []
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -25,7 +26,6 @@ baudrate = int(config.get('ARDUINO', 'Baudrate'))
 fileName = config.get('SETTINGS', 'File_Name')
 testData = config.get('SETTINGS', 'Test_File')
 runOnce = 0
-curve = []
 ### START QtApp #####
 app = QtGui.QApplication([])  # you MUST do this once (initialize things)
 
@@ -33,6 +33,34 @@ app = QtGui.QApplication([])  # you MUST do this once (initialize things)
 def removeIllegalChars(inp):
     result = re.sub("[^0-9,.]", "", inp)
     return result
+windowWidthZoomed = windowWidth
+
+class MyWindow(pg.GraphicsWindow):
+
+
+    def __init__(self, **kargs):
+        super().__init__(**kargs)
+
+    def wheelEvent(self, event):
+        global windowWidthZoomed
+        QtGui.QGraphicsView.wheelEvent(self, event)
+
+
+win = MyWindow(title="Signal from serial port", size=(1920, 1080))  # creates a window
+
+class Curve():
+
+    def __init__(self, selftitle):
+        self.windowWidthZoomed = windowWidth
+        self.title = selftitle
+        self.curvegraph = win.addPlot(title=selftitle).plot()
+
+    def zoomIn(self):
+        self.windowWidthZoomed -= 1
+
+    def zoomOut(self):
+        self.windowWidthZoomed += 1
+
 
 
 # check config is valid
@@ -40,17 +68,20 @@ if sensornum != len(titles):
     print("You have given the incorrect number of titles for the number of graphs. Check config.ini. ")
     exit()
 
-win = pg.GraphicsWindow(title="Signal from serial port")  # creates a window
+
+
 
 for x in range(sensornum):
-    createPlotSpace = win.addPlot(title=titles[x])  # creates empty space for the plot in the window
-    curve.append(createPlotSpace.plot())  # create an empty "plot" (a curve to plot)
-    curve[x].scale(delay, 1)
+
+    curves.append(Curve(titles[x]))
+    curves[x].curvegraph.scale(delay, 1)
 
 ptr = -windowWidth  # set first x position
 dataArray = []
+largeArray = [sensornum]
 for x in range(sensornum):
     dataArray.append(np.linspace(0, 0, windowWidth))
+
 
 sensor = []
 lines = []
@@ -96,12 +127,14 @@ def update():
         outfile.close()
 
         for x in range(sensornum):
-            global curve, ptr, dataArray, runOnce
+            global Curve, ptr, dataArray, runOnce
 
             dataArray[x] = (np.append(dataArray[x], float(lineread[x])))
             dataArray[x] = np.delete(dataArray[x], 0)
-            curve[x].setData(dataArray[x])  # set the curve with this data
-            curve[x].setPos(currenttime() - windowWidth * delay, 0)
+
+            curves[x].curvegraph.setData(dataArray[x][:curves[x].windowWidthZoomed])  # set the curve with this data
+            curves[x].curvegraph.setPos(currenttime() - windowWidth * delay, 0)
+
             QtGui.QApplication.processEvents()  # you MUST process the plot now
 
 
