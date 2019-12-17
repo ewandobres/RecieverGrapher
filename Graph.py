@@ -45,14 +45,14 @@ class MyWindow(pg.GraphicsWindow):
 
 
     def wheelEvent(self, event):
-
-
-
+        QtGui.QGraphicsView.wheelEvent(self, event)
         for x in range(len(curves)):
             if self.getItem(0, x).isUnderMouse():
-                print("I'm over " + str(x))
+                #print("I'm over " + str(x))
+                curves[x].zoomOut()
+                self.getItem(0, x).getViewBox().enableAutoRange()
 
-        QtGui.QGraphicsView.wheelEvent(self, event)
+
 
 
 
@@ -65,12 +65,14 @@ class Curve():
         self.windowWidthZoomed = windowWidth
         self.title = selftitle
         self.curvegraph = win.addPlot(title=selftitle).plot()
+        self.curvegraph
 
     def zoomIn(self):
-        self.windowWidthZoomed -= 1
+        self.windowWidthZoomed -= 10
 
     def zoomOut(self):
-        self.windowWidthZoomed += 1
+        self.windowWidthZoomed += 10
+        #print(self.windowWidthZoomed)
 
 
 
@@ -88,10 +90,11 @@ for x in range(sensornum):
     curves[x].curvegraph.scale(delay, 1)
 
 ptr = -windowWidth  # set first x position
-dataArray = []
-largeArray = [sensornum]
+#dataArray = []
+largeArray = []
 for x in range(sensornum):
-    dataArray.append(np.linspace(0, 0, windowWidth))
+    #dataArray.append(np.linspace(0, 0, windowWidth))
+    largeArray.append([])
 
 
 sensor = []
@@ -140,11 +143,11 @@ def update():
         for x in range(sensornum):
             global Curve, ptr, dataArray, runOnce
 
-            dataArray[x] = (np.append(dataArray[x], float(lineread[x])))
-            dataArray[x] = np.delete(dataArray[x], 0)
-
-            curves[x].curvegraph.setData(dataArray[x][:curves[x].windowWidthZoomed])  # set the curve with this data
-            curves[x].curvegraph.setPos(currenttime() - windowWidth * delay, 0)
+            #dataArray[x] = (np.append(dataArray[x], float(lineread[x])))
+            #[x] = np.delete(dataArray[x], 0)
+            largeArray[x].append(float(lineread[x]))
+            curves[x].curvegraph.setData(largeArray[x][-curves[x].windowWidthZoomed:])  # set the curve with this data
+            curves[x].curvegraph.setPos(currenttime() - (curves[x].windowWidthZoomed) * delay, 0)
 
             QtGui.QApplication.processEvents()  # you MUST process the plot now
 
