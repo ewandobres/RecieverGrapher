@@ -47,15 +47,10 @@ class MyWindow(pg.GraphicsWindow):
     def wheelEvent(self, event):
 
 
-        global windowWidthZoomed
-        if self.getItem(0, 0).isUnderMouse():
-            print("I'm over zero")
-        elif self.getItem(0, 1).isUnderMouse():
-            print("I'm over one")
-        elif self.getItem(0, 2).isUnderMouse():
-            print("i'm over two")
-        else:
-            print("I'm not working")
+
+        for x in range(len(curves)):
+            if self.getItem(0, x).isUnderMouse():
+                print("I'm over " + str(x))
 
         QtGui.QGraphicsView.wheelEvent(self, event)
 
