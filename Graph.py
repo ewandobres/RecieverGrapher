@@ -41,9 +41,25 @@ class MyWindow(pg.GraphicsWindow):
     def __init__(self, **kargs):
         super().__init__(**kargs)
 
+
+
+
     def wheelEvent(self, event):
+
+
         global windowWidthZoomed
+        if self.getItem(0, 0).isUnderMouse():
+            print("I'm over zero")
+        elif self.getItem(0, 1).isUnderMouse():
+            print("I'm over one")
+        elif self.getItem(0, 2).isUnderMouse():
+            print("i'm over two")
+        else:
+            print("I'm not working")
+
         QtGui.QGraphicsView.wheelEvent(self, event)
+
+
 
 
 win = MyWindow(title="Signal from serial port", size=(1920, 1080))  # creates a window
