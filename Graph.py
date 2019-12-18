@@ -13,7 +13,6 @@ import re
 
 start_time = time.time()
 curves = []
-lineread = []
 config = configparser.ConfigParser()
 config.read('config.ini')
 titles = config.get('SETTINGS', 'Graph_Titles').split(',')
@@ -33,10 +32,12 @@ app = QtGui.QApplication([])  # you MUST do this once (initialize things)
 def removeIllegalChars(inp):
     result = re.sub("[^0-9,.]", "", inp)
     return result
+
+
 windowWidthZoomed = windowWidth
 
-class MyWindow(pg.GraphicsWindow):
 
+class MyWindow(pg.GraphicsWindow):
 
     def __init__(self, **kargs):
         super().__init__(**kargs)
@@ -47,6 +48,7 @@ class MyWindow(pg.GraphicsWindow):
 
 
 win = MyWindow(title="Signal from serial port", size=(1920, 1080))  # creates a window
+
 
 class Curve():
 
@@ -62,17 +64,12 @@ class Curve():
         self.windowWidthZoomed += 1
 
 
-
 # check config is valid
 if sensornum != len(titles):
     print("You have given the incorrect number of titles for the number of graphs. Check config.ini. ")
     exit()
 
-
-
-
 for x in range(sensornum):
-
     curves.append(Curve(titles[x]))
     curves[x].curvegraph.scale(delay, 1)
 
@@ -81,7 +78,6 @@ dataArray = []
 largeArray = [sensornum]
 for x in range(sensornum):
     dataArray.append(np.linspace(0, 0, windowWidth))
-
 
 sensor = []
 lines = []
@@ -102,34 +98,34 @@ pltcount = 0
 
 # Realtime data plot. Each time this function is called, the data display is updated
 def update():
-    lineread = []
+    line_read = []
     if choice == "1":
         print("reading data")
-        arduinoData = (ser.readline().decode('ascii'))
-        lineread = (arduinoData.split(','))
+        arduino_data = (ser.readline().decode('ascii'))
+        line_read = (arduino_data.split(','))
     elif choice == "2":
-        tempRead = next(pool)
-        arduinoData = removeIllegalChars(tempRead)
-        lineread = (arduinoData.split(','))
+        temp_read = next(pool)
+        arduino_data = removeIllegalChars(temp_read)
+        line_read = (arduino_data.split(','))
     elif choice == "3":
         for x in range(sensornum):
-            lineread.append(uniform(0, 100))
+            line_read.append(uniform(0, 100))
 
-    if len(lineread) == sensornum:
+    if len(line_read) == sensornum:
         outfile = open(fileName, "a")
         for x in range(sensornum):
             if x == sensornum - 1:
-                outfile.write(str(lineread[x]))
+                outfile.write(str(line_read[x]))
             else:
-                outfile.write(str(lineread[x]) + ",")
+                outfile.write(str(line_read[x]) + ",")
 
         outfile.write("\n")
         outfile.close()
 
         for x in range(sensornum):
-            global Curve, ptr, dataArray, runOnce
+            global ptr, dataArray, runOnce
 
-            dataArray[x] = (np.append(dataArray[x], float(lineread[x])))
+            dataArray[x] = (np.append(dataArray[x], float(line_read[x])))
             dataArray[x] = np.delete(dataArray[x], 0)
 
             curves[x].curvegraph.setData(dataArray[x][:curves[x].windowWidthZoomed])  # set the curve with this data
