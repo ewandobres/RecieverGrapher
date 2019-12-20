@@ -1,11 +1,9 @@
 # Import libraries
 from random import randrange, uniform
-import numpy as np
 from PyQt5.QtWidgets import QMainWindow
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 import time
-import math
 import serial
 from itertools import cycle
 import configparser
@@ -13,6 +11,7 @@ import re
 
 start_time = time.time()
 curves = []
+lineread = []
 config = configparser.ConfigParser()
 config.read('config.ini')
 titles = config.get('SETTINGS', 'Graph_Titles').split(',')
@@ -43,8 +42,14 @@ class MyWindow(pg.GraphicsWindow):
         super().__init__(**kargs)
 
     def wheelEvent(self, event):
-        global windowWidthZoomed
         QtGui.QGraphicsView.wheelEvent(self, event)
+        for x in range(len(curves)):
+            if self.getItem(0, x).isUnderMouse():
+                if event.angleDelta().y() < 0:
+                    curves[x].zoomOut()
+                else:
+                    curves[x].zoomIn()
+                self.getItem(0, x).getViewBox().enableAutoRange()
 
 
 win = MyWindow(title="Signal from serial port", size=(1920, 1080))  # creates a window
@@ -58,10 +63,11 @@ class Curve():
         self.curvegraph = win.addPlot(title=selftitle).plot()
 
     def zoomIn(self):
-        self.windowWidthZoomed -= 1
+        self.windowWidthZoomed -= 10
 
     def zoomOut(self):
-        self.windowWidthZoomed += 1
+        self.windowWidthZoomed += 10
+        # print(self.windowWidthZoomed)
 
 
 # check config is valid
@@ -74,10 +80,11 @@ for x in range(sensornum):
     curves[x].curvegraph.scale(delay, 1)
 
 ptr = -windowWidth  # set first x position
-dataArray = []
-largeArray = [sensornum]
+# dataArray = []
+largeArray = []
 for x in range(sensornum):
-    dataArray.append(np.linspace(0, 0, windowWidth))
+    # dataArray.append(np.linspace(0, 0, windowWidth))
+    largeArray.append([])
 
 sensor = []
 lines = []
@@ -98,38 +105,38 @@ pltcount = 0
 
 # Realtime data plot. Each time this function is called, the data display is updated
 def update():
-    line_read = []
+    lineread = []
     if choice == "1":
         print("reading data")
-        arduino_data = (ser.readline().decode('ascii'))
-        line_read = (arduino_data.split(','))
+        arduinoData = (ser.readline().decode('ascii'))
+        lineread = (arduinoData.split(','))
     elif choice == "2":
-        temp_read = next(pool)
-        arduino_data = removeIllegalChars(temp_read)
-        line_read = (arduino_data.split(','))
+        tempRead = next(pool)
+        arduinoData = removeIllegalChars(tempRead)
+        lineread = (arduinoData.split(','))
     elif choice == "3":
         for x in range(sensornum):
-            line_read.append(uniform(0, 100))
+            lineread.append(uniform(0, 100))
 
-    if len(line_read) == sensornum:
+    if len(lineread) == sensornum:
         outfile = open(fileName, "a")
         for x in range(sensornum):
             if x == sensornum - 1:
-                outfile.write(str(line_read[x]))
+                outfile.write(str(lineread[x]))
             else:
-                outfile.write(str(line_read[x]) + ",")
+                outfile.write(str(lineread[x]) + ",")
 
         outfile.write("\n")
         outfile.close()
 
         for x in range(sensornum):
-            global ptr, dataArray, runOnce
+            global Curve, ptr, dataArray, runOnce
 
-            dataArray[x] = (np.append(dataArray[x], float(line_read[x])))
-            dataArray[x] = np.delete(dataArray[x], 0)
-
-            curves[x].curvegraph.setData(dataArray[x][:curves[x].windowWidthZoomed])  # set the curve with this data
-            curves[x].curvegraph.setPos(currenttime() - windowWidth * delay, 0)
+            # dataArray[x] = (np.append(dataArray[x], float(lineread[x])))
+            # [x] = np.delete(dataArray[x], 0)
+            largeArray[x].append(float(lineread[x]))
+            curves[x].curvegraph.setData(largeArray[x][-curves[x].windowWidthZoomed:])  # set the curve with this data
+            curves[x].curvegraph.setPos(currenttime() - (curves[x].windowWidthZoomed) * delay, 0)
 
             QtGui.QApplication.processEvents()  # you MUST process the plot now
 
