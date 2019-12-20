@@ -1,11 +1,9 @@
 # Import libraries
 from random import randrange, uniform
-import numpy as np
 from PyQt5.QtWidgets import QMainWindow
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 import time
-import math
 import serial
 from itertools import cycle
 import configparser
@@ -48,8 +46,10 @@ class MyWindow(pg.GraphicsWindow):
         QtGui.QGraphicsView.wheelEvent(self, event)
         for x in range(len(curves)):
             if self.getItem(0, x).isUnderMouse():
-                #print("I'm over " + str(x))
-                curves[x].zoomOut()
+                if event.angleDelta().y() < 0:
+                    curves[x].zoomOut()
+                else:
+                    curves[x].zoomIn()
                 self.getItem(0, x).getViewBox().enableAutoRange()
 
 
